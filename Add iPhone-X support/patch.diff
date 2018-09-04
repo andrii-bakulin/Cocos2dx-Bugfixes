@@ -1,0 +1,78 @@
+diff --git a/Classes/Configs/Dim.cpp b/Classes/Configs/Dim.cpp
+index d0b63aa..dea713b 100644
+--- a/Classes/Configs/Dim.cpp
++++ b/Classes/Configs/Dim.cpp
+@@ -12,9 +12,10 @@
+ 
+ USING_NS_CC;
+ 
+-static cocos2d::Size sSnapshotScreenSize;
+-static cocos2d::Size sSnapshotWorkareaSize;
+-static float         sSnapshotBannerHeight;
++static cocos2d::Size    sSnapshotScreenSize;
++static cocos2d::Point   sSnapshotScreenOffset;
++static cocos2d::Size    sSnapshotWorkareaSize;
++static float            sSnapshotBannerHeight;
+ 
+ void Dim::init()
+ {
+@@ -53,6 +54,21 @@ void Dim::makeSizesSnapshot( bool isVerboseApplyBannerPadding )
+     sSnapshotScreenSize = Dim::getDeviceOriginalSize();
+     sSnapshotScreenSize.height -= sSnapshotBannerHeight;
+     
++    // https://github.com/cocos2d/cocos2d-x/pull/18276
++    // https://hsto.org/webt/59/ef/6f/59ef6f8f5b44b748330293.jpeg
++    if( true )
++    {
++        sSnapshotScreenOffset.x = sSnapshotScreenSize.width  * (1.f - (734.f/812.f)) / 2.f;
++        sSnapshotScreenOffset.y = sSnapshotScreenSize.height * (1.f - (352.f/375.f));
++
++        sSnapshotScreenSize.width  -= sSnapshotScreenOffset.x * 2.f;
++        sSnapshotScreenSize.height -= sSnapshotScreenOffset.y;
++    }
++    else
++    {
++        sSnapshotScreenOffset = Point::ZERO;
++    }
++    
+     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ 
+     float screenRatio = sSnapshotScreenSize.width/sSnapshotScreenSize.height;
+@@ -88,6 +104,11 @@ cocos2d::Size Dim::getScreenSize()
+     return sSnapshotScreenSize;
+ }
+ 
++cocos2d::Point Dim::getScreenOffset()
++{
++    return sSnapshotScreenOffset;
++}
++
+ cocos2d::Size Dim::getWorkareaSize()
+ {
+     return sSnapshotWorkareaSize;
+diff --git a/Classes/Configs/Dim.h b/Classes/Configs/Dim.h
+index 8c09106..1d0b9ce 100644
+--- a/Classes/Configs/Dim.h
++++ b/Classes/Configs/Dim.h
+@@ -27,6 +27,8 @@ private:
+ 
+ public:
+ 
++    static cocos2d::Point   getScreenOffset();
++
+     static cocos2d::Size    getWorkareaSize();
+     static float            getWorkareaScale();
+     
+diff --git a/Classes/Scenes/DummyScene.cpp b/Classes/Scenes/DummyScene.cpp
+index 5324e6e..44bd30b 100644
+--- a/Classes/Scenes/DummyScene.cpp
++++ b/Classes/Scenes/DummyScene.cpp
+@@ -47,7 +47,7 @@ void DummyScene::onCreate()
+     
+     this->setAnchorPoint(Point::ZERO);
+     this->setContentSize(workareaSize);
+-    this->setPosition( Point::ZERO );
++    this->setPosition( Dim::getScreenOffset() );
+     this->setScale( Dim::getWorkareaScale() );
+ 
+     //==================================================================================================================
